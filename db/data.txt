@@ -1,0 +1,53 @@
++----+-------------------+
+| id | name              |
++----+-------------------+
+|  1 | Executive         |
+|  2 | Administration    |
+|  3 | Customer Services |
+|  4 | Operations        |
+|  5 | Networks          |
+|  6 | Software          |
+|  7 | Projects          |
++----+-------------------+
+7 rows in set (0.00 sec)
+
+mysql> select * from role;
++----+---------------------------+--------+---------------+
+| id | title                     | salary | department_id |
++----+---------------------------+--------+---------------+
+|  1 | General Manager           | 200000 |             1 |
+|  2 | Customer Services Manager | 150000 |             3 |
+|  3 | Operations Manager        | 150000 |             4 |
+|  4 | Software Manager          | 150000 |             6 |
+|  5 | Networks Manager          | 150000 |             5 |
+|  6 | Administrative Officer    |  75000 |             2 |
+|  7 | Personal Assistant        |  65000 |             1 |
+|  8 | Project Manager           | 150000 |             7 |
+|  9 | Help Desk Manager         | 110000 |             3 |
++----+---------------------------+--------+---------------+
+9 rows in set (0.00 sec)
+
+mysql> select * from employee;
++----+------------+-----------+---------+------------+
+| id | first_name | last_name | role_id | manager_id |
++----+------------+-----------+---------+------------+
+|  1 | Dylan      | Robinson  |       1 |       NULL |
+|  2 | Ari        | Walker    |       7 |          1 |
+|  3 | Imogen     | Anderson  |       2 |          1 |
+|  4 | Zachary    | Parker    |       3 |          1 |
+|  5 | Freya      | Robinson  |       4 |          1 |
+|  6 | Lucas      | Moore     |       5 |          1 |
+|  7 | Aiden      | Mitchell  |       6 |          1 |
+|  8 | Arthur     | White     |       8 |          1 |
+|  9 | Aurora     | Ryan      |       9 |          2 |
++----+------------+-----------+---------+------------+
+9 rows in set (0.00 sec)
+
+
+SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name
+FROM employee
+INNER JOIN role
+on employee.role_id = role.id
+INNER JOIN department
+ON role.department_id = department.id
+ORDER BY role.salary;

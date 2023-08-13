@@ -6,5 +6,8 @@
 4. Installed figlet & inquirer packages
 5. Created server.js & .env files
 6. Installed dotenv package to move db connection data to .env file
-7. Created db schema for HRIS (emploee) database
+7. Created db schema for HRIS (employee) database
 8. Created mysql2 connect/disconnect & tested
+9. Installed console.table package
+10. Added some seed data to HRIS Database
+11. Tested List All Employees by Salary showing Role, Salary and Department 
