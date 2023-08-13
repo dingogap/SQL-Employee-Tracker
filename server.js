@@ -41,8 +41,10 @@ db.connect(function (err) {
             console.log(data);
         }
     );
-    let qryString = 'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM EMPLOYEE AS E LEFT JOIN ROLE AS R ON e.role_id = r.id LEFT JOIN DEPARTMENT AS D ON r.department_id = d.id LEFT JOIN EMPLOYEE AS M ON e.manager_id = m.id'
-    db.query(qryString, function (err, results) {
+    let viewAllEmployees = 'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id ORDER BY e.last_name'
+    let viewAllDepartments = 'SELECT d.name as "Department", d.id as "Department Id" FROM department AS d'
+    let viewAllRoles='SELECT r.title as Title, r.id as "Role Id", d.name as Department, r.salary as Salary FROM Role as r LEFT JOIN department as d ON r.department_id= d.id'
+    db.query(viewAllRoles, function (err, results) {
         if (err) {
             console.log(err);
         }
