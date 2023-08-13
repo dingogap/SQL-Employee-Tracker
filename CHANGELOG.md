@@ -10,4 +10,5 @@
 8. Created mysql2 connect/disconnect & tested
 9. Installed console.table package
 10. Added some seed data to HRIS Database
-11. Tested List All Employees by Salary showing Role, Salary and Department 
+11. Tested List All Employees by Salary showing Role, Salary and Department
+12. Created View All Employees query, called from server.js and formatted using console.table 

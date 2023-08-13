@@ -41,11 +41,14 @@ db.connect(function (err) {
             console.log(data);
         }
     );
-    db.query(
-        'SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name FROM employee INNER JOIN role on employee.role_id = role.id INNER JOIN department ON role.department_id = department.id ORDER BY role.salary desc', function (err, results) {
-            const table = cTable.getTable(results);
-            console.log(table)
+    let qryString = 'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM EMPLOYEE AS E LEFT JOIN ROLE AS R ON e.role_id = r.id LEFT JOIN DEPARTMENT AS D ON r.department_id = d.id LEFT JOIN EMPLOYEE AS M ON e.manager_id = m.id'
+    db.query(qryString, function (err, results) {
+        if (err) {
+            console.log(err);
         }
-    );
+        const table = cTable.getTable(results);
+        console.log(table);
+    });
+
     db.end();
 });
