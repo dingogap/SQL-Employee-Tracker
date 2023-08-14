@@ -13,3 +13,4 @@
 11. Tested List All Employees by Salary showing Role, Salary and Department
 12. Created View All Employees query, called from server.js and formatted using console.table
 13. Added queries for View All Departments and View All Roles
+14. Added query to View All Employees in Specific Department
