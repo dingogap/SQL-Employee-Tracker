@@ -41,25 +41,3 @@ CREATE TABLE employee (
   ON DELETE SET NULL
 );
 
-'SELECT a.id, a.first_name, a.last_name, role.title, role.salary, department.name, (b.first_name, b.last_name FROM employee as b where a.manager_id= b.id) as INNER JOIN employee ON employee.manager_id = employee.id as employee.manager INNER JOIN role on employee.role_id = role.id INNER JOIN department ON role.department_id = department.id ORDER BY role.salary desc', function (err, results) {
-
-
-
-  SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name
-    -> FROM employee
-    -> INNER JOIN role
-    -> on employee.role_id = role.id
-    -> INNER JOIN department
-    -> ON role.department_id = department.id
-    -> ORDER BY role.salary;
-
-
-    SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name, (SELECT manager.first_namefrom employee as manager where employee.manager_id=manager.id) as manager.first_name
-    
-    FROM employee 
-
-    INNER JOIN role
-    on employee.role_id = role.id
-    INNER JOIN department
-    ON role.department_id = department.id
-    ORDER BY role.salary;

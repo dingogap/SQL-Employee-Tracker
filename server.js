@@ -3,7 +3,7 @@ const mysql = require("mysql2");
 const cTable = require("console.table");
 const inquirer = require("inquirer");
 const figlet = require("figlet-promised");
-const questions = require('./lib/questions.js');
+const questions = require("./lib/questions.js");
 
 // Connect to the mysql database using data abstracted to the .env file
 const db = mysql.createConnection({
@@ -32,7 +32,6 @@ db.connect(function (err) {
 
         `);
         startWork();
-
     }
     runFiglet();
 
@@ -40,7 +39,7 @@ db.connect(function (err) {
         inquirer
             .prompt(questions)
             .then((answers) => {
-                queryHris(answers.task)
+                queryHris(answers.task);
             })
             .catch((error) => {
                 console.log(error);
@@ -48,50 +47,92 @@ db.connect(function (err) {
     }
 
     function queryHris(action) {
+        const allDepartments =
+            'SELECT d.name as "Department", d.id as "Department_Id" FROM department AS d';
+        const allManagers =
+            'SELECT DISTINCT m.id, m.first_name,  m.last_name FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN employee AS m ON e.manager_id = m.id  WHERE m.id IS NOT NULL';
+        const allEmployeesForManager =
+            'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id WHERE e.manager_id=1';
+        const allRoles =
+            'SELECT r.title as Title, r.id as "Role Id", d.name as Department, r.salary as Salary FROM Role as r LEFT JOIN department as d ON r.department_id= d.id';
 
-        const allDepartments = 'SELECT d.name as "Department", d.id as "Department_Id" FROM department AS d';
-        const allRoles = 'SELECT r.title as Title, r.id as "Role Id", d.name as Department, r.salary as Salary FROM Role as r LEFT JOIN department as d ON r.department_id= d.id';
-        const allEmployees = 'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id ORDER BY e.last_name';
+        const allEmployees =
+            'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id ORDER BY e.last_name';
         switch (action) {
             case "View All Departments":
-                runJob(action, allDepartments)
-                startWork()
+                runJob(action, allDepartments);
+                startWork();
                 break;
             case "View All Roles":
-                runJob(action, allRoles)
-                startWork()
+                runJob(action, allRoles);
+                startWork();
                 break;
             case "View All Employees":
-                runJob(action, allEmployees)
-                startWork()
+                runJob(action, allEmployees);
+                startWork();
                 break;
             case "View All Employees By Manager":
-                task = 'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id WHERE e.manager_id=1';
-                runJob(action, task)
-                startWork()
+                readManagerData(allManagers)
                 break;
             case "View All Employees By Department":
-                readData(allDepartments)
-                // task = 'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id ORDER BY d.name';
-                // runJob(action, task)
-                // startWork()
+                readDepartmentData(allDepartments);
                 break;
             default:
-                finishJob()
+                finishJob();
         }
-
     }
 
-    function readData(query, callback) {
+    function readManagerData(query, callback) {
+        db.query(query, function (err, results) {
+            if (err) {
+                console.log(err);
+            }
+            // Sort Managers by Last Name
+            results.sort((p1, p2) => (p1.last_name > p2.last_name) ? 1 : (p1.last_name < p2.last_name) ? -1 : 0);
+
+            choices = results.map((data) => ({
+                name: data.first_name + " " + data.last_name,
+                value: data.id,
+            }));
+
+            chooseManager(choices);
+
+        });
+    }
+
+    function chooseManager(choices) {
+        inquirer
+            .prompt([
+                {
+                    type: "list",
+                    name: "Manager_Id",
+                    message: "Which Manager?",
+                    choices: choices,
+                },
+            ])
+            .then((answer) => {
+                manager = choices.find(item => item.value === answer.Manager_Id)
+                runJob(
+                    "View All Employees Managed By: " +
+                    manager.name,
+                    'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id WHERE e.manager_id=' +
+                     answer.Manager_Id
+                );
+                startWork();
+            });
+    }
+
+    function readDepartmentData(query, callback) {
         db.query(query, function (err, results) {
             if (err) {
                 console.log(err);
             }
             console.log(results);
-            choices = results.map(data => ({
-                name: data.Department, value: data.Department_Id
+            choices = results.map((data) => ({
+                name: data.Department,
+                value: data.Department_Id,
             }));
-            chooseDepartment(choices)
+            chooseDepartment(choices);
         });
     }
 
@@ -102,14 +143,18 @@ db.connect(function (err) {
                     type: "list",
                     name: "Department_Id",
                     message: "Which Department?",
-                    choices: choices
-                }
+                    choices: choices,
+                },
             ])
             .then((answer) => {
-                runJob('View All Employees in Department: ' + choices[answer.Department_Id - 1].name, 'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id WHERE d.id=' + answer.Department_Id)
-                startWork()
-
-            })
+                runJob(
+                    "View All Employees in Department: " +
+                    choices[answer.Department_Id - 1].name,
+                    'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id WHERE d.id=' +
+                    answer.Department_Id
+                );
+                startWork();
+            });
     }
 
     function runJob(action, query) {
@@ -118,31 +163,28 @@ db.connect(function (err) {
                 console.log(err);
             }
             const table = cTable.getTable(results);
-            console.log(`
+            console.log(
+                `
 
 
-`+ action + `
+` +
+                action +
+                `
 
-`+ table + `
+` +
+                table +
+                `
 
 
 
 
-`);
+`
+            );
         });
-
-
-
     }
 
     function finishJob() {
         // Close mysql connection
         db.end();
     }
-
-}
-);
-
-
-
-
+});
