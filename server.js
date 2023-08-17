@@ -11,6 +11,7 @@ const allEmployeesByManager = 'SELECT e.id AS "Employee Id", CONCAT(e.first_name
 const allEmployeesByDepartment = 'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id  ORDER BY d.name, e.last_name';
 const allRoles = 'SELECT r.title as Title, r.id as "RoleId", d.name as Department, r.salary as Salary FROM Role as r LEFT JOIN department as d ON r.department_id= d.id';
 const allEmployees = 'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id ORDER BY e.last_name';
+const allEmpAlt = 'SELECT e.id AS "Employee_Id", CONCAT(e.first_name," ",e.last_name) AS "Employee_Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id ORDER BY e.last_name';
 const addDepartment = `INSERT INTO department (name) VALUES (?)`;
 const addRole = `INSERT role (title, salary, department_id) VALUES (?,?,?)`;
 const addEmployee = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)`;
@@ -94,6 +95,12 @@ db.connect(function (err) {
             case "Add New Employee":
                 addNewEmployee(allRoles, addEmployee);
                 break;
+            case "Update Employee Role":
+                updateEmployeeRole(allEmpAlt, allRoles, updateEmployeeRole);
+                break;
+                case "Delete Employee":
+                    deleteEmployee(allEmpAlt);
+                    break;
             default:
                 finishJob();
         }
@@ -296,6 +303,107 @@ db.connect(function (err) {
 
                 })
         })
+    }
+
+    // Update the Employees Role
+    function updateEmployeeRole(allEmpAlt, allRoles) {
+        db.query(allEmpAlt, function (err, results) {
+            if (err) {
+                console.log(err);
+            }
+            choices = results.map((data) => ({
+                name: data.Employee_Name + " - " + data.Role,
+                value: data.Employee_Id,
+            }))
+            inquirer
+                .prompt([
+                    {
+                        type: "list",
+                        name: "employeeId",
+                        message: "Which Employee's Role will be updated?",
+                        choices: choices,
+                        loop: false,
+                        pageSize: 15
+                    }
+                ])
+                .then((answer) => {
+                    console.log(answer)
+                    db.query(allRoles, function (err, results) {
+                        if (err) {
+                            console.log(err);
+                        }
+                        results.sort((p1, p2) =>
+                            p1.last_name > p2.last_name ? 1 : p1.last_name < p2.last_name ? -1 : 0
+                        );
+
+                        choices = results.map((data) => ({
+                            name: data.Title,
+                            value: data.RoleId,
+                        }))
+                        inquirer
+                            .prompt([
+                                {
+                                    type: "list",
+                                    name: "roleId",
+                                    message: "What will be the Employee's New Role?",
+                                    choices: choices,
+                                    loop: false,
+                                    pageSize: 8
+                                }
+                            ])
+                            .then((answerRole) => {
+
+                                db.query('UPDATE employee SET role_id = ' + answerRole.roleId + ' WHERE id = ' + answer.employeeId, function (err, result) {
+                                    if (err) {
+                                        console.log(err);
+                                    }
+                                    console.log("\n\n\nUpdated " + answer.EmployeeName + "'s Role!");
+                                });
+                                runJob("View All Employees", allEmployees)
+                                startWork();
+                            })
+                    })
+                })
+        })
+
+    }
+
+    // Delete an Employee
+    function deleteEmployee(allEmpAlt) {
+        db.query(allEmpAlt, function (err, results) {
+            if (err) {
+                console.log(err);
+            }
+            choices = results.map((data) => ({
+                name: data.Employee_Name + " - " + data.Role,
+                value: data.Employee_Id,
+            }))
+            inquirer
+                .prompt([
+                    {
+                        type: "list",
+                        name: "employeeId",
+                        message: "Which Employee will be deleted?",
+                        choices: choices,
+                        loop: false,
+                        pageSize: 15
+                    }
+                ])
+                .then((answer) => {
+                    db.query('DELETE FROM employee WHERE id = ' + answer.employeeId, function (err, result) {
+                        if (err) {
+                            console.log(err);
+                        }
+                        
+                        let deleted = choices.find(({ value }) => value === answer.employeeId)
+                        console.log("\n\n\nDeleted " + deleted.name + " from Employees");
+                    });
+                    runJob("View All Employees", allEmployees)
+                    startWork();
+
+                })
+        })
+
     }
 
     // Add new role
