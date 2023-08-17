@@ -39,4 +39,6 @@ VALUES ("Dylan", "Robinson" ,1 , NULL ),
 ("Jack", "Murphy",10,9),
 ("Bonnie", "Smith",11,5),
 ("Adam", "Scott",12,5),
-("Phoebe", "O'Brien",12,5);
+("Phoebe", "O'Brien",12,5),
+("Levi", "Hewson",13,5),
+("Joshua", "Fern",13,5);
