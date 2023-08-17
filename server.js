@@ -5,13 +5,20 @@ const inquirer = require("inquirer");
 const figlet = require("figlet-promised");
 const questions = require("./lib/questions.js");
 
-const allDepartments = 'SELECT d.name as "Department", d.id as "Department_Id" FROM department AS d';
-const allManagers = "SELECT DISTINCT m.id, m.first_name,  m.last_name FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN employee AS m ON e.manager_id = m.id  WHERE m.id IS NOT NULL";
-const allEmployeesByManager = 'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id';
-const allEmployeesByDepartment = 'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id  ORDER BY d.name, e.last_name';
-const allRoles = 'SELECT r.title as Title, r.id as "RoleId", d.name as Department, r.salary as Salary FROM Role as r LEFT JOIN department as d ON r.department_id= d.id';
-const allEmployees = 'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id ORDER BY e.last_name';
-const allEmpAlt = 'SELECT e.id AS "Employee_Id", CONCAT(e.first_name," ",e.last_name) AS "Employee_Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id ORDER BY e.last_name';
+const allDepartments =
+    'SELECT d.name as "Department", d.id as "Department_Id" FROM department AS d';
+const allManagers =
+    "SELECT DISTINCT m.id, m.first_name,  m.last_name FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN employee AS m ON e.manager_id = m.id  WHERE m.id IS NOT NULL";
+const allEmployeesByManager =
+    'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id';
+const allEmployeesByDepartment =
+    'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id  ORDER BY d.name, e.last_name';
+const allRoles =
+    'SELECT r.title as Title, r.id as "RoleId", d.name as Department, r.salary as Salary FROM Role as r LEFT JOIN department as d ON r.department_id= d.id';
+const allEmployees =
+    'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id ORDER BY e.last_name';
+const allEmpAlt =
+    'SELECT e.id AS "Employee_Id", CONCAT(e.first_name," ",e.last_name) AS "Employee_Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id ORDER BY e.last_name';
 const addDepartment = `INSERT INTO department (name) VALUES (?)`;
 const addRole = `INSERT role (title, salary, department_id) VALUES (?,?,?)`;
 const addEmployee = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)`;
@@ -30,7 +37,7 @@ db.connect(function (err) {
         return console.error("Error: " + err.message);
     }
     // Connected sucessfully - continue
-    console.clear()
+    console.clear();
     console.log("Connected to the HRIS Database");
 
     // Display Banner at start of CLI App
@@ -47,6 +54,7 @@ db.connect(function (err) {
     }
     runFiglet();
 
+    // Start processing
     function startWork() {
         inquirer
             .prompt(questions)
@@ -58,6 +66,7 @@ db.connect(function (err) {
             });
     }
 
+    // Control action based on Inquirer answers
     function queryHris(action) {
         switch (action) {
             case "View All Departments":
@@ -98,14 +107,15 @@ db.connect(function (err) {
             case "Update Employee Role":
                 updateEmployeeRole(allEmpAlt, allRoles, updateEmployeeRole);
                 break;
-                case "Delete Employee":
-                    deleteEmployee(allEmpAlt);
-                    break;
+            case "Delete Employee":
+                deleteEmployee(allEmpAlt);
+                break;
             default:
                 finishJob();
         }
     }
 
+    // Read Manager Data
     function readManagerData(query, callback) {
         db.query(query, function (err, results) {
             if (err) {
@@ -125,6 +135,7 @@ db.connect(function (err) {
         });
     }
 
+    // Choose the Manager
     function chooseManager(choices) {
         inquirer
             .prompt([
@@ -146,6 +157,7 @@ db.connect(function (err) {
             });
     }
 
+    // Read Department Names & Id
     function readDepartmentData(query, callback) {
         db.query(query, function (err, results) {
             if (err) {
@@ -159,6 +171,7 @@ db.connect(function (err) {
         });
     }
 
+    // Choose the Department
     function chooseDepartment(choices) {
         inquirer
             .prompt([
@@ -206,12 +219,15 @@ db.connect(function (err) {
                     }
                     console.log("\n\n\nAdded " + answer.deptName + " to Departments!");
                 });
-                runJob("View All Departments", 'SELECT d.name as "Department", d.id as "Department_Id" FROM department AS d');
+                runJob(
+                    "View All Departments",
+                    'SELECT d.name as "Department", d.id as "Department_Id" FROM department AS d'
+                );
                 startWork();
             });
     }
 
-    // Add new Employee 
+    // Add new Employee
     function addNewEmployee(allRolessQry, addRoleQry) {
         db.query(allRolessQry, function (err, results) {
             if (err) {
@@ -221,7 +237,7 @@ db.connect(function (err) {
             choices = results.map((data) => ({
                 name: data.Title,
                 value: data.RoleId,
-            }))
+            }));
             inquirer
                 .prompt([
                     {
@@ -230,9 +246,7 @@ db.connect(function (err) {
                         message: "What is the Employees First Name?",
                         validate: (answers) => {
                             if (answers.length === 0) {
-                                return console.log(
-                                    "Please enter the First Name:"
-                                );
+                                return console.log("Please enter the First Name:");
                             } else {
                                 return true;
                             }
@@ -244,9 +258,7 @@ db.connect(function (err) {
                         message: "What is the Employees Last Name?",
                         validate: (answers) => {
                             if (answers.length === 0) {
-                                return console.log(
-                                    "Please enter the Last Name:"
-                                );
+                                return console.log("Please enter the Last Name:");
                             } else {
                                 return true;
                             }
@@ -258,23 +270,26 @@ db.connect(function (err) {
                         message: "What will be the Employee's Role?",
                         choices: choices,
                         loop: false,
-                        pageSize: 12
-                    }
+                        pageSize: 12,
+                    },
                 ])
                 .then((answer) => {
-
                     db.query(allManagers, function (err, results) {
                         if (err) {
                             console.log(err);
                         }
                         results.sort((p1, p2) =>
-                            p1.last_name > p2.last_name ? 1 : p1.last_name < p2.last_name ? -1 : 0
+                            p1.last_name > p2.last_name
+                                ? 1
+                                : p1.last_name < p2.last_name
+                                    ? -1
+                                    : 0
                         );
 
                         choices = results.map((data) => ({
                             name: data.first_name + " " + data.last_name,
                             value: data.id,
-                        }))
+                        }));
                         inquirer
                             .prompt([
                                 {
@@ -283,26 +298,37 @@ db.connect(function (err) {
                                     message: "Who will be the Employee's Manager?",
                                     choices: choices,
                                     loop: false,
-                                    pageSize: 8
-                                }
-
+                                    pageSize: 8,
+                                },
                             ])
                             .then((answerManager) => {
-
-                                db.query(addEmployee, [answer.employeeFirstName, answer.employeeLastName, answer.roleId, answerManager.managerId], function (err, result) {
-                                    if (err) {
-                                        console.log(err);
+                                db.query(
+                                    addEmployee,
+                                    [
+                                        answer.employeeFirstName,
+                                        answer.employeeLastName,
+                                        answer.roleId,
+                                        answerManager.managerId,
+                                    ],
+                                    function (err, result) {
+                                        if (err) {
+                                            console.log(err);
+                                        }
+                                        console.log(
+                                            "\n\n\nAdded " +
+                                            answer.employeeFirstName +
+                                            " " +
+                                            answer.employeeLastName +
+                                            " to Employees!"
+                                        );
                                     }
-                                    console.log("\n\n\nAdded " + answer.employeeFirstName + " " + answer.employeeLastName + " to Employees!");
-                                });
-                                runJob("View All Employees", allEmployees)
+                                );
+                                runJob("View All Employees", allEmployees);
                                 startWork();
-                            })
-                    })
-
-
-                })
-        })
+                            });
+                    });
+                });
+        });
     }
 
     // Update the Employees Role
@@ -314,7 +340,7 @@ db.connect(function (err) {
             choices = results.map((data) => ({
                 name: data.Employee_Name + " - " + data.Role,
                 value: data.Employee_Id,
-            }))
+            }));
             inquirer
                 .prompt([
                     {
@@ -323,8 +349,8 @@ db.connect(function (err) {
                         message: "Which Employee's Role will be updated?",
                         choices: choices,
                         loop: false,
-                        pageSize: 15
-                    }
+                        pageSize: 15,
+                    },
                 ])
                 .then((answer) => {
                     db.query(allRoles, function (err, results) {
@@ -332,13 +358,17 @@ db.connect(function (err) {
                             console.log(err);
                         }
                         results.sort((p1, p2) =>
-                            p1.last_name > p2.last_name ? 1 : p1.last_name < p2.last_name ? -1 : 0
+                            p1.last_name > p2.last_name
+                                ? 1
+                                : p1.last_name < p2.last_name
+                                    ? -1
+                                    : 0
                         );
 
                         choices = results.map((data) => ({
                             name: data.Title,
                             value: data.RoleId,
-                        }))
+                        }));
                         inquirer
                             .prompt([
                                 {
@@ -347,24 +377,27 @@ db.connect(function (err) {
                                     message: "What will be the Employee's New Role?",
                                     choices: choices,
                                     loop: false,
-                                    pageSize: 8
-                                }
+                                    pageSize: 8,
+                                },
                             ])
                             .then((answerRole) => {
-
-                                db.query('UPDATE employee SET role_id = ' + answerRole.roleId + ' WHERE id = ' + answer.employeeId, function (err, result) {
-                                    if (err) {
-                                        console.log(err);
+                                db.query(
+                                    "UPDATE employee SET role_id = " +
+                                    answerRole.roleId +
+                                    " WHERE id = " +
+                                    answer.employeeId,
+                                    function (err, result) {
+                                        if (err) {
+                                            console.log(err);
+                                        }
                                     }
-
-                                });
-                                runJob("View All Employees", allEmployees)
+                                );
+                                runJob("View All Employees", allEmployees);
                                 startWork();
-                            })
-                    })
-                })
-        })
-
+                            });
+                    });
+                });
+        });
     }
 
     // Delete an Employee
@@ -376,7 +409,7 @@ db.connect(function (err) {
             choices = results.map((data) => ({
                 name: data.Employee_Name + " - " + data.Role,
                 value: data.Employee_Id,
-            }))
+            }));
             inquirer
                 .prompt([
                     {
@@ -385,24 +418,27 @@ db.connect(function (err) {
                         message: "Which Employee will be deleted?",
                         choices: choices,
                         loop: false,
-                        pageSize: 15
-                    }
+                        pageSize: 15,
+                    },
                 ])
                 .then((answer) => {
-                    db.query('DELETE FROM employee WHERE id = ' + answer.employeeId, function (err, result) {
-                        if (err) {
-                            console.log(err);
+                    db.query(
+                        "DELETE FROM employee WHERE id = " + answer.employeeId,
+                        function (err, result) {
+                            if (err) {
+                                console.log(err);
+                            }
+
+                            let deleted = choices.find(
+                                ({ value }) => value === answer.employeeId
+                            );
+                            console.log("\n\n\nDeleted " + deleted.name + " from Employees");
                         }
-                        
-                        let deleted = choices.find(({ value }) => value === answer.employeeId)
-                        console.log("\n\n\nDeleted " + deleted.name + " from Employees");
-                    });
-                    runJob("View All Employees", allEmployees)
+                    );
+                    runJob("View All Employees", allEmployees);
                     startWork();
-
-                })
-        })
-
+                });
+        });
     }
 
     // Add new role
@@ -414,7 +450,6 @@ db.connect(function (err) {
             choices = results.map((data) => ({
                 name: data.Department,
                 value: data.Department_Id,
-
             }));
             inquirer
                 .prompt([
@@ -424,9 +459,7 @@ db.connect(function (err) {
                         message: "What is the title of the new Role?",
                         validate: (answers) => {
                             if (answers.length === 0) {
-                                return console.log(
-                                    "Please enter the Title:"
-                                );
+                                return console.log("Please enter the Title:");
                             } else {
                                 return true;
                             }
@@ -438,9 +471,7 @@ db.connect(function (err) {
                         message: "what is the Salary?",
                         validate: (answers) => {
                             if (answers.length === 0) {
-                                return console.log(
-                                    "Please enter the Salary for this Role:"
-                                );
+                                return console.log("Please enter the Salary for this Role:");
                             } else {
                                 return true;
                             }
@@ -451,22 +482,27 @@ db.connect(function (err) {
                         name: "Department_Id",
                         message: "Which Department?",
                         choices: choices,
-                    }
+                    },
                 ])
                 .then((answer) => {
-                    db.query(addRole, [answer.roleName, answer.roleSalary, answer.Department_Id], function (err, result) {
-                        if (err) {
-                            console.log(err);
+                    db.query(
+                        addRole,
+                        [answer.roleName, answer.roleSalary, answer.Department_Id],
+                        function (err, result) {
+                            if (err) {
+                                console.log(err);
+                            }
+                            console.log("\n\n\nAdded " + answer.roleName + " to Roles!");
                         }
-                        console.log("\n\n\nAdded " + answer.roleName + " to Roles!");
-                    });
-                    runJob("View All Roles", 'SELECT r.title as Title, r.id as "Role Id", d.name as Department, r.salary as Salary FROM Role as r LEFT JOIN department as d ON r.department_id= d.id')
+                    );
+                    runJob(
+                        "View All Roles",
+                        'SELECT r.title as Title, r.id as "Role Id", d.name as Department, r.salary as Salary FROM Role as r LEFT JOIN department as d ON r.department_id= d.id'
+                    );
                     startWork();
                 });
         });
-
     }
-
 
     // Run the standard SQL Queries & display the results in a formatted table
     function runJob(action, query) {
