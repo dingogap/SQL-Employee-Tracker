@@ -30,6 +30,7 @@ Employee Data is stored in a MySQL database running on the server. The programs 
 * [Questions](#questions)
 
 ## Video Demonstration
+Click the link to view the [Demonstration Video][def1]
 
 ## Installation
 The Employee Tracker requires node.js, Inquirer v8.2.4, console.table, dotenv, figlet and mySql2 v2.2.5 to be installed. MySQL must be installed and running on the server.
@@ -57,7 +58,6 @@ If you have questions about this project or would like more information you can 
   
 You can see more of my work in my [Github Repository](https://github.com/dingogap).
 
-## Resources Used
 
 ## Resources Used
 1. Bootcamp Materials - Lesson Material from Weeks 1 - 12
@@ -68,8 +68,10 @@ You can see more of my work in my [Github Repository](https://github.com/dingoga
 6. [mysql2][def5] Documentation
 
 
-[def1]: https://vimeo.com/849850517
+
+[def1]: https://vimeo.com/855373546
 [def2]: https://www.npmjs.com/package/inquirer
 [def3]: https://www.npmjs.com/package/console.table
 [def4]: https://www.mysql.com/
 [def5]: https://www.npmjs.com/package/mysql2
+

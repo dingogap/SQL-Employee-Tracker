@@ -327,7 +327,6 @@ db.connect(function (err) {
                     }
                 ])
                 .then((answer) => {
-                    console.log(answer)
                     db.query(allRoles, function (err, results) {
                         if (err) {
                             console.log(err);
@@ -357,7 +356,7 @@ db.connect(function (err) {
                                     if (err) {
                                         console.log(err);
                                     }
-                                    console.log("\n\n\nUpdated " + answer.EmployeeName + "'s Role!");
+
                                 });
                                 runJob("View All Employees", allEmployees)
                                 startWork();
