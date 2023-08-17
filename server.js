@@ -9,7 +9,7 @@ const allDepartments = 'SELECT d.name as "Department", d.id as "Department_Id" F
 const allManagers = "SELECT DISTINCT m.id, m.first_name,  m.last_name FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN employee AS m ON e.manager_id = m.id  WHERE m.id IS NOT NULL";
 const allEmployeesByManager = 'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id';
 const allEmployeesByDepartment = 'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id  ORDER BY d.name, e.last_name';
-const allRoles = 'SELECT r.title as Title, r.id as "Role Id", d.name as Department, r.salary as Salary FROM Role as r LEFT JOIN department as d ON r.department_id= d.id';
+const allRoles = 'SELECT r.title as Title, r.id as "RoleId", d.name as Department, r.salary as Salary FROM Role as r LEFT JOIN department as d ON r.department_id= d.id';
 const allEmployees = 'SELECT e.id AS "Employee Id", CONCAT(e.first_name," ",e.last_name) AS "Employee Name", r.title AS Role, r.salary AS Salary, d.name AS Department, CONCAT(m.first_name, " ", m.last_name) AS Manager FROM employee AS e LEFT JOIN role AS r ON e.role_id = r.id LEFT JOIN department AS d ON r.department_id = d.id LEFT JOIN employee AS m ON e.manager_id = m.id ORDER BY e.last_name';
 const addDepartment = `INSERT INTO department (name) VALUES (?)`;
 const addRole = `INSERT role (title, salary, department_id) VALUES (?,?,?)`;
@@ -91,9 +91,9 @@ db.connect(function (err) {
             case "Add New Role":
                 addNewRole(allDepartments, addRole);
                 break;
-                case "Add New Employee":
-                    addNewRole(allRoles, addEmployee);
-                    break;
+            case "Add New Employee":
+                addNewEmployee(allRoles, addEmployee);
+                break;
             default:
                 finishJob();
         }
@@ -173,6 +173,7 @@ db.connect(function (err) {
             });
     }
 
+    // Add new Department
     function addNewDepartment(query, callback) {
         inquirer
             .prompt([
@@ -203,26 +204,27 @@ db.connect(function (err) {
             });
     }
 
-    function addNewEmployee(allDeptsQry, addRoleQry) {
-        db.query(allDeptsQry, function (err, results) {
+    // Add new Employee 
+    function addNewEmployee(allRolessQry, addRoleQry) {
+        db.query(allRolessQry, function (err, results) {
             if (err) {
                 console.log(err);
             }
-            choices = results.map((data) => ({
-                name: data.Department,
-                value: data.Department_Id,
 
-            }));
+            choices = results.map((data) => ({
+                name: data.Title,
+                value: data.RoleId,
+            }))
             inquirer
                 .prompt([
                     {
                         type: "input",
-                        name: "firstName",
-                        message: "What is the Employee's First Name?",
+                        name: "employeeFirstName",
+                        message: "What is the Employees First Name?",
                         validate: (answers) => {
                             if (answers.length === 0) {
                                 return console.log(
-                                    "Please enter the Title:"
+                                    "Please enter the First Name:"
                                 );
                             } else {
                                 return true;
@@ -231,45 +233,72 @@ db.connect(function (err) {
                     },
                     {
                         type: "input",
-                        name: "lastName",
-                        message: "What is the Employee's Last Name?",
+                        name: "employeeLastName",
+                        message: "What is the Employees Last Name?",
                         validate: (answers) => {
                             if (answers.length === 0) {
                                 return console.log(
-                                    "Please enter the Title:"
+                                    "Please enter the Last Name:"
                                 );
                             } else {
                                 return true;
                             }
                         },
-                    },                    
+                    },
                     {
                         type: "list",
                         name: "roleId",
                         message: "What will be the Employee's Role?",
                         choices: choices,
-                    },
-                    {
-                        type: "list",
-                        name: "managerId",
-                        message: "What will be the Employee's Manager?",
-                        choices: choices,
-                    }                   
+                        loop: false,
+                        pageSize: 12
+                    }
                 ])
                 .then((answer) => {
-                    db.query(addRole, [answer.firstName, answer.lastName, answer.roleId, answer.ManagerId], function (err, result) {
+
+                    db.query(allManagers, function (err, results) {
                         if (err) {
                             console.log(err);
                         }
-                        console.log("\n\n\nAdded " + answer.roleName + " to Department!");
-                    });
-                    runJob("View All Roles", 'SELECT r.title as Title, r.id as "Role Id", d.name as Department, r.salary as Salary FROM Role as r LEFT JOIN department as d ON r.department_id= d.id')
-                    startWork();
-                });
-        });
+                        results.sort((p1, p2) =>
+                            p1.last_name > p2.last_name ? 1 : p1.last_name < p2.last_name ? -1 : 0
+                        );
 
+                        choices = results.map((data) => ({
+                            name: data.first_name + " " + data.last_name,
+                            value: data.id,
+                        }))
+                        inquirer
+                            .prompt([
+                                {
+                                    type: "list",
+                                    name: "managerId",
+                                    message: "Who will be the Employee's Manager?",
+                                    choices: choices,
+                                    loop: false,
+                                    pageSize: 8
+                                }
+
+                            ])
+                            .then((answerManager) => {
+
+                                db.query(addEmployee, [answer.employeeFirstName, answer.employeeLastName, answer.roleId, answerManager.managerId], function (err, result) {
+                                    if (err) {
+                                        console.log(err);
+                                    }
+                                    console.log("\n\n\nAdded " + answer.employeeFirstName + " " + answer.employeeLastName + " to Employees!");
+                                });
+                                runJob("View All Employees", allEmployees)
+                                startWork();
+                            })
+                    })
+
+
+                })
+        })
     }
 
+    // Add new role
     function addNewRole(allDeptsQry, addRoleQry) {
         db.query(allDeptsQry, function (err, results) {
             if (err) {
