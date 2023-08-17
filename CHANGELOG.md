@@ -1,4 +1,4 @@
-# SQL Eployee Tracker
+# SQL Employee Tracker
 
 1. Created Git Repository
 2. Created Folder Structure
